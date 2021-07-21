@@ -1,5 +1,4 @@
 # Mfocus
-# Mfocus
 
 Description:
 Mfocus is a web application which aims to help college students to manage their daily tasks.

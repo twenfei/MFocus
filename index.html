@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nerko+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+    <script src='scripts/jquery.min.js'></script>
+    <script src="scripts/page.js"></script>
+    <title> M-focus </title>
+    <link rel="stylesheet" type="text/css" href="style/style.css">
+</head>
+  <body>
+    <div class="Mfocus">
+      <div id="instructions">
+        <h1>Instruction</h1> 
+        <ul>
+          <li>Write down your first task and set coins! Then click <span style="color:blue; font-size: 150%;">Add task</span> .</li>
+          <li>Click on the <span style="color:green; font-size: 150%;" >In progress</span> button when you have finished the task!</li>
+          <li>Your rewarding <span style="color:orange; font-size: 150%;">coins</span> will be collected in your wallet.</li>
+          <li>Your <img src="img/digiPet3.gif" style="height: 30px;"> pet needs to be taken care of, always check on it’s statue bars!</li>
+          <li>If your pet dies, there are resurgent medicines in the <img src="img/eshop.png" style="height: 30px;"> shop but they are expansive.</li>
+          <li>Click on the shop and buy what your pet needs but remember to check the remaining coins in your <img src="img/wallet.png" style="height: 30px;"> wallet.</li>
+          <li>Open your <img src="img/backpack.png" style="height: 30px;"> backpack to use the item you bought from the shop.</li>
+          <li>Wanna listen to some music to relax? Check out our <img src="img/music.jpg" style="height: 30px;"> music player.</li>
+        </ul>
+      </div>
+      <div id="todoList">
+          <input type="text" v-model="currentTodo" @keydown.enter="submit" placeholder="Input your schedules or tasks">
+          <input type="number" v-model="currentCoin" @keydown.enter="submit">
+
+          <button v-on:click="submit" class="addBtn">Add Todo</button>
+          <button v-on:click="deleteTodo" class="delBtn">Delete Todo</button>
+          <button v-on:click="clearCompleted" class="clearBtn">Clear Completed</button>
+          <ol>
+              <li v-for="todo in todos" v-bind:key="todo.id">
+                  {{ todo.content }} <span>(coin value:{{ todo.coins }})</span>
+                  <button v-bind:id="todo.id" v-on:click="checkTask($event)" >In progress</button> 
+                  <!-- todo: have two modes to display, v-if-->
+              </li>
+          </ol>
+      </div>
+
+      <div id="digiPet">
+          <div id="scene">
+            <img v-bind:src="scene_url" v-on:click="movePet" alt="scene gif" height="500" width="700">
+            <div id="pet">
+              <img class="say1" v-bind:src="say_url" alt="say png" height="92">
+              <img class="pet1" v-bind:src="pet_url" alt="pet gif" height="120">
+            </div>
+            <textarea readonly id='log' rows=15 cols=42>{{log_txt}}</textarea>
+            <div id="petStatus">
+                <p>
+                  <label for="file">Hygiene :</label>
+                  <progress id="file" v-bind:value=hygiene max="100"> {{hygiene}} </progress>
+                  {{hygiene}}/100
+                </p>
+                <br>
+                <p>
+                  <label for="file">Hunger :</label>
+                  <progress id="file" v-bind:value=hunger max="100"> {{hunger}} </progress>
+                  {{hunger}}/100
+                </p>
+                <br>
+                <p>
+                  <label for="file">Entertainment :</label>
+                  <progress id="file" v-bind:value=entertainment max="100"> {{entertainment}} </progress>
+                  {{entertainment}}/100
+                </p>
+            </div>
+            <a class="prev" v-on:click="plusSlides(-1)">&#10094;</a>
+            <a class="next" v-on:click="plusSlides(1)">&#10095;</a>
+          </div>
+      </div>
+      <div id="eshop">
+        <span>
+          <img class="shopImg shopImg1" num="1" onclick="tab(this)" src="img/backpack.png" alt="Backpack">
+          <br>
+          Backpack
+        </span>
+        <span>
+          <img class="shopImg shopImg2" num="2" onclick="tab(this)" src="img/eshop.png" alt="Eshop">
+          <br>
+          Eshop
+        </span>
+        <span>
+          <img class="shopImg shopImg4" num="3" onclick="tab(this)" src="img/wallet.png" alt="My Wallet">
+          <br>
+          My Wallet
+        </span>
+        <span>
+          <img class="shopImg shopImg3" num="4" onclick="tab(this)" src="img/music.jpg" alt="Play Music">
+          <br>
+          Play Music
+        </span>
+        <div style="position:relative;">
+          <div class="box box2">
+            <div class="shopContainer">
+                <div class="triangle-up triangle-up1"></div>
+                <div class="singleItem" v-for="item in items">
+                    <img class="ItemImg" v-bind:src="'img/shopItems/'+ item.image_url">
+                    <br>
+                    <p> {{item.content}} </p>
+                    <p>
+                      need coins : {{item.cost}} / piece
+                    </p>
+                    <button v-if="item.cost <= wallet" v-bind:id="item.itemId" v-on:click="addToBag($event)">Add to backpack</button>
+                </div>
+            </div>
+          </div>
+          <div class="box box1">
+              <div class="shopContainer" v-if="backpack.length > 0">
+                  <div class="triangle-up triangle-up2"></div>
+                  <div class="singleItem" v-for="(itemId, idx) in backpack">
+                      <img class="ItemImg" v-bind:src="'img/shopItems/' + items[itemId].image_url" >
+                      <br>
+                      <button v-on:click="useItem(idx)"> Use </button>
+                  </div>
+              </div>
+              <div class="shopContainer" v-else>
+                  <div class="triangle-up triangle-up2"></div>
+                  Nothing！ Go to the shop...
+              </div>
+          </div>
+          <div class="box box3">
+              <div class="shopContainer">
+                  <div class="triangle-up triangle-up3"></div>
+                  mycoins : <span class="mycoins">{{wallet}}</span>
+              </div>
+          </div>
+          <div class="box box4">
+              <div class="shopContainer">
+                  <div class="triangle-up triangle-up4"></div>
+                  <div id="music">
+                    <!-- <audio :src="currentSrc" autoplay="autoplay" controls="controls" @ended="nextsong()"> </audio>
+                    <ul>
+                        <li v-for="(item,index) in songs" @click="clickHandle(index)">
+                            <h3>
+                              {{item.title}} === {{item.name}}
+                              <span>PLAY</span>
+                            </h3>
+                        </li>
+                    </ul> -->
+                    <iframe src="https://open.spotify.com/embed/artist/4k5fFEYgkWYrYvtOK3zVBl" width="300" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+                  </div>
+              </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </body>
+  <script type="text/javascript">
+    function tab(obj){
+      var num = $(obj).attr('num');
+      $('.box'+num).siblings().hide();
+      $('.box'+num).show();
+    }
+  </script>
+  <!-- <iframe src="https://open.spotify.com/embed/artist/4k5fFEYgkWYrYvtOK3zVBl" width="300" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe> -->
+</html>
